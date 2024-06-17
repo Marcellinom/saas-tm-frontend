@@ -72,7 +72,7 @@ const AssignRoleDialog: React.FC<Props> = ({
         tenant_id: tenantId,
       };
 
-      fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/user/role`, {
+      fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/user/role`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

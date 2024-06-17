@@ -54,7 +54,7 @@ const Navbar: React.FC = () => {
           <nav className="grid gap-2 text-lg font-medium">
             <div className="flex h-14 items-center">
               <Link href="/" className="flex items-center gap-2 font-semibold">
-                <span className="">Saas IAM</span>
+                <span className="">Saas Tenant Management</span>
               </Link>
             </div>
             <Link

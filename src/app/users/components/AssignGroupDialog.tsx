@@ -73,7 +73,7 @@ const AssignGroupDialog: React.FC<Props> = ({
         tenant_id: tenantId,
       };
 
-      fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/user/group`, {
+      fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/user/group`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

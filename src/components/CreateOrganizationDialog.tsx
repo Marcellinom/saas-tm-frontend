@@ -47,7 +47,7 @@ const CreateOrganizationDialog: React.FC<Props> = ({
     onSubmit: async ({ value }) => {
       setIsSubmitting(true);
 
-      fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/organization`, {
+      fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/organization`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

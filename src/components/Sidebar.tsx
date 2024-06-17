@@ -33,7 +33,7 @@ const Sidebar = () => {
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="">Saas IAM</span>
+            <span className="">Saas Tenant Management</span>
           </Link>
         </div>
         <div className="flex-1">
@@ -97,18 +97,29 @@ const Sidebar = () => {
             </p>
 
             <Link
-              href="#"
+              href={process.env.NEXT_PUBLIC_IAM_HOST ?? "#"}
+              className={cn(
+                pathname !== "/tenants" && "text-muted-foreground",
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
+              )}
+            >
+              <Users className="h-4 w-4" />
+              Identity Management
+            </Link>
+
+            <Link
+              href={process.env.NEXT_PUBLIC_ONBOARDING_HOST ?? "#"}
               className={cn(
                 pathname !== "/tenants" && "text-muted-foreground",
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
               )}
             >
               <Box className="h-4 w-4" />
-              Tenant Management
+              Onboarding
             </Link>
 
             <Link
-              href="#"
+              href={process.env.NEXT_PUBLIC_BILLING_HOST ?? "#"}
               className={cn(
                 pathname !== "/tenants" && "text-muted-foreground",
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"

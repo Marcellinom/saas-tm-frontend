@@ -64,7 +64,7 @@ const UserTable: React.FC<Props> = ({ users, isLoading, setActionDialog }) => {
       user_org_id: userOrgId,
     };
 
-    await fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/user/promote`, {
+    await fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/user/promote`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -100,7 +100,7 @@ const UserTable: React.FC<Props> = ({ users, isLoading, setActionDialog }) => {
       user_org_id: userOrgId,
     };
 
-    await fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/user/demote`, {
+    await fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/user/demote`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

@@ -20,7 +20,7 @@ export default function Home() {
       try {
         setIsLoggingIn({ error: false, state: true });
 
-        fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/callback`, {
+        fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/callback`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

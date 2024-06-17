@@ -34,12 +34,12 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
   const pathname = usePathname();
 
   const login = () => {
-    fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/login`, {
+    fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/login`, {
       method: "GET",
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.error) {
+        if (data.error) {1
           console.error(data.error);
         } else {
           window.location.href = data.url;
@@ -48,7 +48,7 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
   };
 
   const logout = () => {
-    fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/logout`, {
+    fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/logout`, {
       method: "GET",
     })
       .then((res) => res.json())

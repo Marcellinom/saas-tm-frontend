@@ -93,7 +93,7 @@ const AddUserTab: React.FC<FormTabProps> = ({
 
       console.log(value, selectedOrganization);
 
-      await fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/organization/add-user`, {
+      await fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/organization/add-user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -199,7 +199,7 @@ const CreateUserTab: React.FC<FormTabProps> = ({
       console.log(value, selectedOrganization);
 
       await fetch(
-        `${process.env.NEXT_PUBLIC_IAM_HOST}/organization/create-user`,
+        `${process.env.NEXT_PUBLIC_IAM_PROVIDER}/organization/create-user`,
         {
           method: "POST",
           headers: {
@@ -381,7 +381,7 @@ const CreateUserTab: React.FC<FormTabProps> = ({
 const checkUserExists = async (email: string) => {
   let doesUserExist: boolean = false;
 
-  await fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/user?email=${email}`, {
+  await fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/user?email=${email}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

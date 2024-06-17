@@ -63,7 +63,7 @@ const UserTable: React.FC<Props> = ({ users, isLoading }) => {
       tenant_id: tenantId,
     };
 
-    await fetch(`${process.env.NEXT_PUBLIC_IAM_HOST}/user/role`, {
+    await fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}/user/role`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
