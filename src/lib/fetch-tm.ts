@@ -1,5 +1,5 @@
-const fetcher = (url: string) =>
-    fetch(`${process.env.NEXT_PUBLIC_IAM_PROVIDER}${url}`, {
+const tm_fetcher = (url: string) =>
+    fetch(`${process.env.NEXT_PUBLIC_TENANT_MANAGEMENT_API}${url}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -12,4 +12,4 @@ const fetcher = (url: string) =>
       console.error("Error:", error);
     });
 
-export default fetcher;
+export default tm_fetcher;

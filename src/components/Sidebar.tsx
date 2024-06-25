@@ -26,8 +26,6 @@ const Sidebar = () => {
   const [tenantId] = useQueryState("tenant_id", parseAsString);
   const [tenantName] = useQueryState("tenant_name", parseAsString);
 
-  console.log(pathname);
-
   return (
     <div className="hidden border-r bg-muted/40 md:block">
       <div className="flex h-full max-h-screen flex-col gap-2">
@@ -51,53 +49,12 @@ const Sidebar = () => {
               Dashboard
             </Link>
 
-            <Link
-              href="/users"
-              className={cn(
-                pathname !== "/users" && "text-muted-foreground",
-                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
-              )}
-            >
-              <User className="h-4 w-4" />
-              Users
-            </Link>
-
-            <Link
-              href={
-                tenantId && tenantName
-                  ? `/roles?tenant_id=${tenantId}&tenant_name=${tenantName}`
-                  : "/roles"
-              }
-              className={cn(
-                !pathname.startsWith("/roles") && "text-muted-foreground",
-                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
-              )}
-            >
-              <Tags className="h-4 w-4" />
-              Roles
-            </Link>
-
-            <Link
-              href={
-                tenantId && tenantName
-                  ? `/groups?tenant_id=${tenantId}&tenant_name=${tenantName}`
-                  : "/groups"
-              }
-              className={cn(
-                !pathname.startsWith("/groups") && "text-muted-foreground",
-                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
-              )}
-            >
-              <Users className="h-4 w-4" />
-              Groups
-            </Link>
-
             <p className="mt-8 mb-2 ml-1 text-muted-foreground">
-              External Apps
+              Utilites
             </p>
 
             <Link
-              href={process.env.NEXT_PUBLIC_IAM_HOST ?? "#"}
+              href={process.env.NEXT_PUBLIC_IAM ?? "#"}
               className={cn(
                 pathname !== "/tenants" && "text-muted-foreground",
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
@@ -108,7 +65,7 @@ const Sidebar = () => {
             </Link>
 
             <Link
-              href={process.env.NEXT_PUBLIC_ONBOARDING_HOST ?? "#"}
+              href={process.env.NEXT_PUBLIC_TENANT_ONBOARDING ?? "#"}
               className={cn(
                 pathname !== "/tenants" && "text-muted-foreground",
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
@@ -119,7 +76,7 @@ const Sidebar = () => {
             </Link>
 
             <Link
-              href={process.env.NEXT_PUBLIC_BILLING_HOST ?? "#"}
+              href={process.env.NEXT_PUBLIC_BILLING ?? "#"}
               className={cn(
                 pathname !== "/tenants" && "text-muted-foreground",
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
