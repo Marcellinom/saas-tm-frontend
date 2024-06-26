@@ -17,7 +17,7 @@ export default function Home() {
     if (selectedOrganization == null) return
     const fetchTenants = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_TENANT_MANAGEMENT_API}/tenant?organization_id=${selectedOrganization?.organizationId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_TENANT_MANAGEMENT_API}/tenant/${selectedOrganization?.organizationId}`, {
           headers: {
             authorization: `Bearer ${localStorage.getItem("token")}`
           }
