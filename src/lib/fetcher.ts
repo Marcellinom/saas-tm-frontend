@@ -6,6 +6,9 @@ const fetcher = (url: string) =>
       },
     })
     .then((res) => {
+      if (!res.ok && res.status == 401) {
+        localStorage.removeItem("token")
+      }
       return res.json()
     })
     .catch((error) => {
