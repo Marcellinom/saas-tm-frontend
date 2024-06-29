@@ -57,6 +57,7 @@ export function TenantList({
 
   const [isDialogOpen, setisDialogOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [prices, setPrices] = useState<Price[]>([]);
   const [selectedPrice, setSelectedPrice] = useState<Price | null>(null);
   const [alert, setAlert] = useState<string | null>(null);
@@ -130,22 +131,22 @@ export function TenantList({
     if (!open) {
       setPrices([])
       setSelectedPrice(null)
+      setSelectedProduct(null)
     }
     setisDialogOpen(open)
   }
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ONBOARDING_HOST}/tenant/create`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_TENANT_MANAGEMENT_API}/tenant/change_tier`, {
         method: "POST", // Changed to POST for creation
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          product_id: selectedPrice?.id,
-          organization_id: selectedOrganization?.organizationId,
-          name: userInfo?.name,
+          new_product_id: selectedProduct?.id,
+          tenant_id: tenant.tenant_id,
         })
       });
       const data = await response.json();
@@ -160,7 +161,7 @@ export function TenantList({
       console.error("Error during tenant creation:", error);
     }
     toast.success("Product successfully bought", {
-      description: "Deployment on process, please wait up to 10 minutes."
+      description: "Please resolve payment on Billing"
     })
   }
 
@@ -231,7 +232,7 @@ export function TenantList({
                 <Select onValueChange={(value) => {
                   let product = products.find(p => p.id === value);
                   setPrices(product?.prices ?? []);
-                  console.log("PRODUCTNYA :::", product);
+                  setSelectedProduct(product ?? null)
                 }}>
                   <SelectTrigger id="tier">
                     <SelectValue placeholder="Select" />

@@ -8,6 +8,7 @@ const fetcher = (url: string) =>
     .then((res) => {
       if (!res.ok && res.status == 401) {
         localStorage.removeItem("token")
+        window.location.reload()
       }
       return res.json()
     })
