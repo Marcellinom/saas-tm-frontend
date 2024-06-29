@@ -32,6 +32,11 @@ export interface Tenant {
   app_id: number
 }
 
+const TenantStatusColor: Readonly<Record<string, string>> = {
+  "activated": "text-green-700",
+  "deactivated": "text-red-700",
+}
+
 interface TenantProps extends React.HTMLAttributes<HTMLDivElement> {
   tenant: Tenant
   aspectRatio?: "portrait" | "square"
@@ -52,13 +57,14 @@ export function TenantList({
 
   const [isDialogOpen, setisDialogOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [prices, setPrices] = useState<Price[]>([]);
   const [selectedPrice, setSelectedPrice] = useState<Price | null>(null);
   const [alert, setAlert] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState<boolean | null>(null);
 
   type Price = {
     id: string | null;
+    product_id: string | null
     price_value: number;
     recurrence: string | null;
   }
@@ -76,7 +82,12 @@ export function TenantList({
     app_id: number;
     tenant: Tenant | null;
     tier_name: string;
-    price: number;
+    price: {
+      id: string | null;
+      product_id: string | null
+      price: number;
+      reccurence: string | null;
+    }[];
   }
 
   useEffect(() => {
@@ -88,18 +99,19 @@ export function TenantList({
           let products: Product[] = []
           console.log("PRICE", data)
           data.data.forEach((resProduct: OnboardingProductResponse) => {
-            let price: Price = {
-              id: resProduct.id,
-              price_value: resProduct.price,
-              recurrence: "monthly"
-            }
-
             let product: Product = {
               id: resProduct.id,
               app_id: resProduct.app_id,
               tenant: null,
               tier_name: resProduct.tier_name,
-              prices: [price],
+              prices: resProduct.price.map(p => {
+                return {
+                  id: p.id,
+                  product_id: p.product_id,
+                  price_value: p.price,
+                  recurrence: p.reccurence
+                }
+              }),
             }
 
             products.push(product)
@@ -115,7 +127,10 @@ export function TenantList({
   }, [isDialogOpen, tenant]);
 
   const handleChange = (open: boolean) => {
-    if (!open) setSelectedProduct(null)
+    if (!open) {
+      setPrices([])
+      setSelectedPrice(null)
+    }
     setisDialogOpen(open)
   }
 
@@ -128,7 +143,7 @@ export function TenantList({
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          product_id: selectedProduct?.id,
+          product_id: selectedPrice?.id,
           organization_id: selectedOrganization?.organizationId,
           name: userInfo?.name,
         })
@@ -179,7 +194,8 @@ export function TenantList({
               />
             </div>
             <div className="text-sm">
-              <h3 className="font-medium leading-none">{tenant.name} - {tenant.app_name}</h3>
+              <h3 className="font-medium leading-none">{tenant.name} - {tenant.tier}</h3>
+              <h4 className={`${tenant.status in TenantStatusColor ? TenantStatusColor[tenant.status] : "text-yellow-600"} font-extrabold`}>{tenant.status}</h4>
             </div>
           </div>
         </DialogTrigger>
@@ -200,27 +216,22 @@ export function TenantList({
                   />
                   <div>
                     <p>{tenant.name}</p>
-                    <DialogDescription>
-                      Change {tenant.app_name} tier, choose from available tiers and price below
-                    </DialogDescription>
                   </div>
                 </div>
               </DialogTitle>
             </DialogHeader>
-            {/* {selectedProduct && (
-              <div className="ml-auto text-lg font-semibold">
-                <p>${selectedProduct.price.price_value}</p>
-              </div>
-            )} */}
           </div>
+          <DialogDescription>
+                      Change {tenant.app_name} tier, choose from available tiers and price below
+          </DialogDescription>
           <form>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="tier" className="pb-2">Change Tiers</Label>
                 <Select onValueChange={(value) => {
-                  const product = products.find(p => p.id === value);
-                  setSelectedProduct(product ?? null);
-                  console.log(product);
+                  let product = products.find(p => p.id === value);
+                  setPrices(product?.prices ?? []);
+                  console.log("PRODUCTNYA :::", product);
                 }}>
                   <SelectTrigger id="tier">
                     <SelectValue placeholder="Select" />
@@ -232,10 +243,10 @@ export function TenantList({
                   </SelectContent>
                 </Select>
               </div>
-              {selectedProduct && <div className="flex flex-col space-y-1.5">
+              {prices && <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="price" className="pb-2">Prices</Label>
                 <Select onValueChange={(value) => {
-                  const price = selectedProduct.prices.find(p => p.id === value);
+                  const price = prices.find(p => p.id === value);
                   setSelectedPrice(price ?? null);
                   console.log(price);
                 }}>
@@ -243,9 +254,10 @@ export function TenantList({
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent position="popper">
-                    {selectedProduct.prices?.map((price: Price) => (
-                      <SelectItem key={price.id} value={price.id || ""}>{price.price_value} - {price.recurrence}</SelectItem>
-                    ))}
+                    {prices.map((price: Price, i) => {
+                      console.log(price)
+                      return <SelectItem key={`${price.id}-${i}`} value={`${price.id}|${i}`}>{price.price_value} - {price.recurrence}</SelectItem>
+                    })}
                   </SelectContent>
                 </Select>
               </div>}
