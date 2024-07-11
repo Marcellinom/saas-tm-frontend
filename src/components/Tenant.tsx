@@ -1,10 +1,8 @@
 import Image from "next/image"
-import { PlusCircledIcon } from "@radix-ui/react-icons"
 
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { useContext, useEffect, useState } from "react"
@@ -135,7 +133,25 @@ export function TenantList({
     }
     setisDialogOpen(open)
   }
-
+  const createBilling = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BILLING_API}/v1/jwt/tenants`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+          price_id: selectedPrice?.id,
+          org_id: selectedOrganization?.organizationId,
+          tenant_id: tenant.tenant_id,
+          tenant_name: tenant.name
+        })
+      })
+    } catch (err) {
+      console.error("Error during billing creation:", err);
+    }
+  }
   const handleSubmit = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_TENANT_MANAGEMENT_API}/tenant/change_tier`, {
@@ -156,13 +172,37 @@ export function TenantList({
         setDialogOpen(null)
         setisDialogOpen(false)
         setTimeout(() => setAlert(null), 3000); // Hide alert after 3 seconds
+        if (data.data != null && data.data.use_billing) {
+          await createBilling()
+        }
       }
     } catch (error) {
-      console.error("Error during tenant creation:", error);
+      console.error("Error during tenant migration request:", error);
     }
     toast.success("Product successfully bought", {
       description: "Please resolve payment on Billing"
     })
+  }
+
+  const handleDecommission = async (tenant: Tenant) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_TENANT_MANAGEMENT_API}/tenant/decommission`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          tenant_id: tenant.tenant_id
+        })
+      })
+      const data = await response.json();
+      if (data.error) {
+        console.error(data.error);
+      }
+    } catch (error) {
+      console.error("Error during tenant migration request:", error);
+    }
   }
 
   return (
@@ -184,7 +224,7 @@ export function TenantList({
           <div className={cn("flex items-center space-x-4 h-50 hover:bg-gray-200 rounded-lg", className)} {...props}>
             <div className="space-x-4 overflow-hidden rounded-sm">
               <Image
-                src={(tenant.resource_information.tenant_icon || tenant.resource_information.app_icon) ?? ""}
+                src={(tenant.resource_information.tenant_icon || tenant.resource_information.app_icon) ?? "https://storage.googleapis.com/ta_saas/saas_todos.png"}
                 alt={tenant.name}
                 width={width}
                 height={height}
@@ -197,6 +237,10 @@ export function TenantList({
             <div className="text-sm">
               <h3 className="font-medium leading-none">{tenant.name} - {tenant.tier}</h3>
               <h4 className={`${tenant.status in TenantStatusColor ? TenantStatusColor[tenant.status] : "text-yellow-600"} font-extrabold`}>{tenant.status}</h4>
+              <Button variant="destructive" size="sm" onClick={(e) => {
+                e.stopPropagation()
+                handleDecommission(tenant)
+              }}>Decommission</Button>
             </div>
           </div>
         </DialogTrigger>
@@ -206,7 +250,7 @@ export function TenantList({
               <DialogTitle>
                 <div className="flex items-center justify-between">
                   <Image
-                    src={(tenant.resource_information.tenant_icon || tenant.resource_information.app_icon) ?? ""}
+                    src={(tenant.resource_information.tenant_icon || tenant.resource_information.app_icon) ?? "https://storage.googleapis.com/ta_saas/saas_todos.png"}
                     alt={tenant.name}
                     width={width}
                     height={height}
