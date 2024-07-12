@@ -23,7 +23,7 @@ export interface Tenant {
     compute_url?: string | null
     app_icon?: string | null
     tenant_icon?: string | null
-  }
+  } | null
   product_id: string;
   tier: string;
   app_name: string
@@ -56,6 +56,8 @@ export function TenantList({
   const [isDialogOpen, setisDialogOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [oldProduct, setOldProduct] = useState<Product | null>(null)
+  
   const [prices, setPrices] = useState<Price[]>([]);
   const [selectedPrice, setSelectedPrice] = useState<Price | null>(null);
   const [alert, setAlert] = useState<string | null>(null);
@@ -73,14 +75,16 @@ export function TenantList({
     app_id: number;
     tenant: Tenant | null;
     tier_name: string;
+    tier_index: number
     prices: Price[];
   }
 
-  type OnboardingProductResponse = {
+  type BillingProductResponse = {
     id: string;
     app_id: number;
     tenant: Tenant | null;
     tier_name: string;
+    tier_index: number
     price: {
       id: string | null;
       product_id: string | null
@@ -96,13 +100,13 @@ export function TenantList({
           const data = await response.json();
 
           let products: Product[] = []
-          console.log("PRICE", data)
-          data.data.forEach((resProduct: OnboardingProductResponse) => {
+          data.data.forEach((resProduct: BillingProductResponse) => {
             let product: Product = {
               id: resProduct.id,
               app_id: resProduct.app_id,
               tenant: null,
               tier_name: resProduct.tier_name,
+              tier_index: resProduct.tier_index,
               prices: resProduct.price.map(p => {
                 return {
                   id: p.id,
@@ -114,6 +118,9 @@ export function TenantList({
             }
 
             products.push(product)
+            if (product.id == tenant.product_id) {
+              setOldProduct(product)
+            }
           });
 
           setProducts(products);
@@ -128,14 +135,18 @@ export function TenantList({
   const handleChange = (open: boolean) => {
     if (!open) {
       setPrices([])
-      setSelectedPrice(null)
       setSelectedProduct(null)
     }
     setisDialogOpen(open)
   }
   const createBilling = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BILLING_API}/v1/jwt/tenants`, {
+      let type = "upgrade"
+      if (oldProduct && selectedProduct) {
+        type = oldProduct.tier_index > selectedProduct.tier_index ? "downgrade" : "upgrade"
+      }
+      console.log("price pas submit", selectedPrice)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BILLING_API}/v1/jwt/organizations/${selectedOrganization?.organizationId}/tenants`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -143,11 +154,15 @@ export function TenantList({
         },
         body: JSON.stringify({
           price_id: selectedPrice?.id,
-          org_id: selectedOrganization?.organizationId,
           tenant_id: tenant.tenant_id,
-          tenant_name: tenant.name
+          change_type: type
         })
       })
+      const data = await response.json()
+      if (data.data == null) {
+        return
+      } 
+      if (data.data.redirect_url) window.open(data.data.redirect_url)
     } catch (err) {
       console.error("Error during billing creation:", err);
     }
@@ -174,6 +189,8 @@ export function TenantList({
         setTimeout(() => setAlert(null), 3000); // Hide alert after 3 seconds
         if (data.data != null && data.data.use_billing) {
           await createBilling()
+        } else {
+          window.location.reload()
         }
       }
     } catch (error) {
@@ -203,6 +220,26 @@ export function TenantList({
     } catch (error) {
       console.error("Error during tenant migration request:", error);
     }
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BILLING_API}/v1/jwt/organizations/${selectedOrganization?.organizationId}/tenants/stop`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          tenant_id: tenant.tenant_id
+        })
+      })
+      const data = await response.json();
+      if (data.error) {
+        console.error(data.error);
+      }
+    } catch (error) {
+      console.error("Error during tenant migration request:", error);
+    }
+
+    window.location.reload()
   }
 
   return (
@@ -224,7 +261,7 @@ export function TenantList({
           <div className={cn("flex items-center space-x-4 h-50 hover:bg-gray-200 rounded-lg", className)} {...props}>
             <div className="space-x-4 overflow-hidden rounded-sm">
               <Image
-                src={(tenant.resource_information.tenant_icon || tenant.resource_information.app_icon) ?? "https://storage.googleapis.com/ta_saas/saas_todos.png"}
+                src={(tenant.resource_information?.tenant_icon || tenant.resource_information?.app_icon) ?? "https://storage.googleapis.com/ta_saas/saas_todos.png"}
                 alt={tenant.name}
                 width={width}
                 height={height}
@@ -250,7 +287,7 @@ export function TenantList({
               <DialogTitle>
                 <div className="flex items-center justify-between">
                   <Image
-                    src={(tenant.resource_information.tenant_icon || tenant.resource_information.app_icon) ?? "https://storage.googleapis.com/ta_saas/saas_todos.png"}
+                    src={(tenant.resource_information?.tenant_icon || tenant.resource_information?.app_icon) ?? "https://storage.googleapis.com/ta_saas/saas_todos.png"}
                     alt={tenant.name}
                     width={width}
                     height={height}
@@ -276,6 +313,7 @@ export function TenantList({
                 <Select onValueChange={(value) => {
                   let product = products.find(p => p.id === value);
                   setPrices(product?.prices ?? []);
+                  setSelectedPrice(product?.prices[0] ?? null);
                   setSelectedProduct(product ?? null)
                 }}>
                   <SelectTrigger id="tier">
@@ -291,17 +329,16 @@ export function TenantList({
               {prices && <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="price" className="pb-2">Prices</Label>
                 <Select onValueChange={(value) => {
-                  const price = prices.find(p => p.id === value);
+                  let price = prices.find(p => p.id === value);
                   setSelectedPrice(price ?? null);
-                  console.log(price);
+                  console.log("SELECTED PRICE:", selectedPrice, price);
                 }}>
                   <SelectTrigger id="price">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent position="popper">
                     {prices.map((price: Price, i) => {
-                      console.log(price)
-                      return <SelectItem key={`${price.id}-${i}`} value={`${price.id}|${i}`}>{price.price_value} - {price.recurrence}</SelectItem>
+                      return <SelectItem key={`${price.id}`} value={`${price.id}`}>{price.price_value} - {price.recurrence}</SelectItem>
                     })}
                   </SelectContent>
                 </Select>
