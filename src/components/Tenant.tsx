@@ -23,6 +23,7 @@ export interface Tenant {
     compute_url?: string | null
     app_icon?: string | null
     tenant_icon?: string | null
+    serving_url?: string | null
   } | null
   product_id: string;
   tier: string;
@@ -189,9 +190,8 @@ export function TenantList({
         setTimeout(() => setAlert(null), 3000); // Hide alert after 3 seconds
         if (data.data != null && data.data.use_billing) {
           await createBilling()
-        } else {
-          window.location.reload()
         }
+        window.location.reload()
       }
     } catch (error) {
       console.error("Error during tenant migration request:", error);
@@ -260,6 +260,7 @@ export function TenantList({
         <DialogTrigger asChild>
           <div className={cn("flex items-center space-x-4 h-50 hover:bg-gray-200 rounded-lg", className)} {...props}>
             <div className="space-x-4 overflow-hidden rounded-sm">
+            <a href={tenant.resource_information?.serving_url ?? "#"} target="_blank">
               <Image
                 src={(tenant.resource_information?.tenant_icon || tenant.resource_information?.app_icon) ?? "https://storage.googleapis.com/ta_saas/saas_todos.png"}
                 alt={tenant.name}
@@ -270,6 +271,7 @@ export function TenantList({
                   aspectRatio === "portrait" ? "aspect-[3/4]" : "aspect-square"
                 )}
               />
+            </a>
             </div>
             <div className="text-sm">
               <h3 className="font-medium leading-none">{tenant.name} - {tenant.tier}</h3>
